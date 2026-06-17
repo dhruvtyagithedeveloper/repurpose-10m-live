@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · We Hit $10M, Together</title>
+<title>rePurpose · We Hit $10M, Together</title><!--BUILD:debounce-replay-v9-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -288,8 +288,8 @@
 
   /* controls */
   /* manual reveal only — no auto threshold */
-  $('revealBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
-  $('replayBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
+  $('revealBtn').addEventListener('click',()=>{ if(animating)return; setBusy(true); store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}); });
+  $('replayBtn').addEventListener('click',()=>{ if(animating)return; setBusy(true); store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}); });
   $('resetBtn').addEventListener('click',async()=>{ if(!confirm('Clear every note and reset the board? Do this BEFORE the live event.'))return; const keys=[...await store.list(NS+'contrib:'),NS+'meta']; for(const k of keys) await store.del(k); location.reload(); });
 
   /* spotlight (collection) */
@@ -324,14 +324,21 @@
   $('readBtn').addEventListener('click',openArchive);
 
   /* reveal sequence */
-  let revealed=false, lastReplay=0;
+  let revealed=false, lastReplay=0, animating=false;
   const collectView=$('collectView'), revealView=$('revealView'), hero=$('hero'), montage=$('montage'), orb2=$('orb2');
+  function setBusy(on){
+    const r=$('revealBtn'), p=$('replayBtn');
+    [r,p].forEach(b=>{ if(!b)return; b.disabled=on; b.style.opacity=on?'.45':''; b.style.pointerEvents=on?'none':''; });
+    if(r) r.textContent = on ? '▷ Revealing…' : '✦ Reveal the number';
+    if(p) p.textContent = on ? '▷ Playing…'   : '↺ Replay animation';
+  }
   function showResult(){
     hero.style.opacity='1'; hero.classList.add('revealed');
     $('screenTitle').textContent='We did it. All of us.';
     $('subline').style.opacity='1';
     const rb=$('readBtn'); rb.style.opacity='1'; rb.style.pointerEvents='auto';
     storm();
+    animating=false; setBusy(false);
   }
   function spawnChips(dur){
     const end=Date.now()+dur;
@@ -355,13 +362,15 @@
     },300);
   }
   function runReveal(animate){
+    if(animate && animating) return;          // ignore re-triggers while an animation is in flight
+    if(animate){ animating=true; setBusy(true); }
     setMode('screen'); collectView.style.display='none'; revealView.style.display='flex';
     orb2.classList.remove('grow','pop'); hero.classList.remove('revealed'); hero.style.opacity='0';
     $('subline').style.opacity='0'; const rb=$('readBtn'); rb.style.opacity='0'; rb.style.pointerEvents='none';
     if(!animate){ showResult(); return; }
     void orb2.offsetWidth; orb2.classList.add('grow'); implode(4000); spawnChips(3800);
     runMontage(()=>{ orb2.classList.remove('grow'); orb2.classList.add('pop'); setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },260); });
-    setTimeout(()=>{ if(hero.style.opacity!=='1') showResult(); },6500); // safety net
+    setTimeout(()=>{ if(animating) showResult(); },6500); // safety net: force-finish + re-enable
   }
   function doReveal(animate){ if(revealed) return; revealed=true; runReveal(animate); }
 
