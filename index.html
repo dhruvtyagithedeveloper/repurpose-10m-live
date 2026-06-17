@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · All Hands</title><!--BUILD:no-stale-reveal-v14-->
+<title>rePurpose · All Hands</title><!--BUILD:host-link-only-v15-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -249,12 +249,8 @@
   if(innerWidth>=1024) setMode('screen');
   $('modeBtn').addEventListener('click',()=> setMode(document.body.classList.contains('mode-screen')?'join':'screen'));
   const _params = new URLSearchParams(location.search);
-  try{
-    if(_params.get('host')==='0') localStorage.removeItem('rp10host');         // ?host=0 to clear host on this device
-    else if(_params.has('host')) localStorage.setItem('rp10host','1');         // ?host (or ?host=1) → become host, sticky
-  }catch(e){}
-  let _stored=false; try{ _stored = localStorage.getItem('rp10host')==='1'; }catch(e){}
-  const isHost = _params.has('host') || _stored;
+  try{ localStorage.removeItem('rp10host'); }catch(e){}                         // clear any old sticky host flag — host is link-only now
+  const isHost = _params.has('host') && _params.get('host')!=='0';             // controls ONLY on the ?host=1 link, every session
   if(isHost) document.body.classList.add('is-host');
   addEventListener('keydown',e=>{
     if(!isHost) return;
