@@ -249,7 +249,13 @@
   function setMode(mm){ document.body.className=document.body.className.replace(/mode-\w+/,'mode-'+mm); if(mm==='screen') renderQR(); }
   if(innerWidth>=1024) setMode('screen');
   $('modeBtn').addEventListener('click',()=> setMode(document.body.classList.contains('mode-screen')?'join':'screen'));
-  const isHost = new URLSearchParams(location.search).has('host');
+  const _params = new URLSearchParams(location.search);
+  try{
+    if(_params.get('host')==='0') localStorage.removeItem('rp10host');         // ?host=0 to clear host on this device
+    else if(_params.has('host')) localStorage.setItem('rp10host','1');         // ?host (or ?host=1) → become host, sticky
+  }catch(e){}
+  let _stored=false; try{ _stored = localStorage.getItem('rp10host')==='1'; }catch(e){}
+  const isHost = _params.has('host') || _stored;
   if(isHost) document.body.classList.add('is-host');
   addEventListener('keydown',e=>{
     if(!isHost) return;
