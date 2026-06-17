@@ -88,13 +88,13 @@
   @keyframes orbGrow{0%{transform:translate(-50%,-50%) scale(0);opacity:.2}100%{transform:translate(-50%,-50%) scale(2.4);opacity:.95}}
   @keyframes orbPop{0%{transform:translate(-50%,-50%) scale(2.4);opacity:.95}100%{transform:translate(-50%,-50%) scale(7);opacity:0}}
   .flychip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);background:rgba(208,230,232,.10);border:1px solid rgba(249,104,10,.45);color:#fff;border-radius:10px;padding:5px 12px;font-size:clamp(.65rem,1.3vmin,.95rem);max-width:28vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95;pointer-events:none;transition:left 1.5s cubic-bezier(.45,0,.2,1),top 1.5s cubic-bezier(.45,0,.2,1),transform 1.5s ease,opacity 1.5s ease;z-index:2}
-  .hero{opacity:0;transition:opacity .5s;cursor:pointer}
+  .hero{opacity:0;transition:opacity .5s;cursor:default}
   .hero .n{font-family:var(--display);font-weight:700;font-size:clamp(5rem,26vmin,20rem);letter-spacing:-.04em;color:var(--orange);text-shadow:0 0 70px rgba(249,104,10,.55);display:block;line-height:.9}
   .hero.revealed{animation:pop 1s cubic-bezier(.2,1.5,.4,1)}
   @keyframes pop{0%{transform:scale(.6);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1)}}
   .subline{font-family:var(--display);font-weight:500;color:#fff;font-size:clamp(.9rem,2vmin,1.4rem);opacity:0;transition:opacity .8s ease .3s;margin-top:1vmin}
-  .readhint{color:var(--soft-turq);font-size:clamp(.8rem,1.5vmin,1rem);opacity:0;transition:opacity .8s ease .6s;margin-top:1.6vmin;cursor:pointer}
-  .readhint:hover{color:#fff}
+  .readbtn{margin-top:1.8vmin;font-family:var(--body);font-weight:700;font-size:clamp(.85rem,1.6vmin,1.05rem);color:var(--soft-turq);background:transparent;border:1.5px solid rgba(208,230,232,.45);border-radius:999px;padding:.7em 1.6em;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .8s ease .5s,color .15s,border-color .15s}
+  .readbtn:hover{color:#fff;border-color:#fff}
 
   /* archive (living artifact) */
   .archive{display:none;position:fixed;inset:0;z-index:80;background:rgba(3,40,42,.97);padding:5vmin 4vmin;overflow:auto}
@@ -198,7 +198,7 @@
         <div class="orb2" id="orb2"></div>
         <div class="hero" id="hero"><span class="n">$10M</span></div>
         <div class="subline" id="subline">Built by every one of us.</div>
-        <div class="readhint" id="readHint">tap the number to read everyone's notes →</div>
+        <button class="readbtn" id="readBtn">📖 Read everyone's notes</button>
       </div>
     </div>
   </div>
@@ -215,6 +215,7 @@
   <div class="grp"><label>Live count</label><span class="live" id="liveN">0</span></div>
   <div class="grp"><label>Unlock at (auto)</label><input type="number" id="targetInput" value="0" min="0" max="500"></div>
   <button class="ctl-btn" id="revealBtn">✦ Reveal the number</button>
+  <button class="ctl-btn ghost" id="replayBtn">↺ Replay animation</button>
   <button class="ctl-btn danger" id="resetBtn">Reset board</button>
   <button class="ctl-btn ghost" id="modeBtn">Switch view</button>
 </div>
@@ -280,7 +281,8 @@
   /* controls */
   let target=0; const targetInput=$('targetInput');
   targetInput.addEventListener('change',()=>{ target=Math.max(0,+targetInput.value||0); });
-  $('revealBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now()}));
+  $('revealBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
+  $('replayBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
   $('resetBtn').addEventListener('click',async()=>{ if(!confirm('Clear every note and reset the board? Do this BEFORE the live event.'))return; const keys=[...await store.list(NS+'contrib:'),NS+'meta']; for(const k of keys) await store.del(k); location.reload(); });
 
   /* spotlight (collection) */
@@ -311,15 +313,16 @@
   }
   function esc(s){ return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   $('archClose').addEventListener('click',()=>document.body.classList.remove('archive-on'));
-  $('hero').addEventListener('click',openArchive); $('readHint').addEventListener('click',openArchive);
+  $('readBtn').addEventListener('click',openArchive);
 
   /* reveal sequence */
-  let revealed=false;
+  let revealed=false, lastReplay=0;
   const collectView=$('collectView'), revealView=$('revealView'), hero=$('hero'), montage=$('montage'), orb2=$('orb2');
-  function finishReveal(){
+  function showResult(){
     hero.style.opacity='1'; hero.classList.add('revealed');
     $('screenTitle').textContent='We did it. All of us.';
-    $('subline').style.opacity='1'; $('readHint').style.opacity='1';
+    $('subline').style.opacity='1';
+    const rb=$('readBtn'); rb.style.opacity='1'; rb.style.pointerEvents='auto';
     storm();
   }
   function spawnChips(dur){
@@ -343,15 +346,16 @@
       if(Date.now()-t0>4000){ clearInterval(iv); montage.style.opacity='0'; done&&done(); }
     },300);
   }
-  function doReveal(animate){
-    if(revealed) return; revealed=true;
-    setMode('screen');
-    collectView.style.display='none'; revealView.style.display='flex';
-    if(!animate){ finishReveal(); return; }
-    orb2.classList.add('grow'); implode(4000); spawnChips(3800);
-    runMontage(()=>{ orb2.classList.remove('grow'); orb2.classList.add('pop'); setTimeout(finishReveal,260); });
-    setTimeout(()=>{ if(hero.style.opacity!=='1') finishReveal(); },6500); // safety net
+  function runReveal(animate){
+    setMode('screen'); collectView.style.display='none'; revealView.style.display='flex';
+    orb2.classList.remove('grow','pop'); hero.classList.remove('revealed'); hero.style.opacity='0';
+    $('subline').style.opacity='0'; const rb=$('readBtn'); rb.style.opacity='0'; rb.style.pointerEvents='none';
+    if(!animate){ showResult(); return; }
+    void orb2.offsetWidth; orb2.classList.add('grow'); implode(4000); spawnChips(3800);
+    runMontage(()=>{ orb2.classList.remove('grow'); orb2.classList.add('pop'); setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },260); });
+    setTimeout(()=>{ if(hero.style.opacity!=='1') showResult(); },6500); // safety net
   }
+  function doReveal(animate){ if(revealed) return; revealed=true; runReveal(animate); }
 
   /* poll */
   let contribs=[]; const seen=new Set(); let first=true;
@@ -361,7 +365,10 @@
     if(added.length){ contribs.sort((a,b)=>a.ts-b.ts); if(!first&&!revealed) showSpot(added[added.length-1],true); }
     updateCounts();
     const meta=await store.get(NS+'meta');
-    if(meta&&meta.revealed&&!revealed) doReveal(!first && innerWidth>=1024);
+    if(meta&&meta.revealed){
+      if(!revealed){ doReveal(!first && innerWidth>=1024); lastReplay=meta.replay||meta.ts||0; }
+      else if(meta.replay && meta.replay!==lastReplay){ lastReplay=meta.replay; if(innerWidth>=1024) runReveal(true); }
+    }
     if(contribs.length && sp.classList.contains('empty') && !revealed) cycleSpot();
     first=false;
   }
