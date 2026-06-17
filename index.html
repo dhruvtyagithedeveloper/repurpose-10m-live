@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · All Hands</title><!--BUILD:surprise-fix-v10-->
+<title>rePurpose · All Hands</title><!--BUILD:live-wall-v11-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -78,6 +78,16 @@
   .jh-t .a{font-family:var(--display);font-weight:600;font-size:clamp(1rem,2vmin,1.35rem);color:#fff}
   .jh-t .b{color:var(--soft-turq);font-size:clamp(.78rem,1.4vmin,.95rem);margin-top:.3vmin;word-break:break-all;max-width:46vmin}
 
+  /* live wall */
+  .wall{display:flex;flex-wrap:wrap;gap:1vmin;justify-content:center;align-content:center;width:min(96vw,1500px);max-height:62vh;overflow:hidden;padding:1vmin}
+  .wall-empty{color:var(--soft-turq);opacity:.6;font-size:clamp(.9rem,1.8vmin,1.2rem)}
+  .wall:not(:empty)~.wall-empty{display:none}
+  .wallcard{background:rgba(208,230,232,.07);border:1px solid rgba(208,230,232,.18);border-radius:12px;padding:.6em 1em;max-width:24vw;font-family:var(--display);font-weight:500;font-size:clamp(.62rem,1.3vmin,1rem);line-height:1.25;color:#fff;opacity:0;transform:scale(.6);transition:opacity .5s ease,transform .5s cubic-bezier(.2,1.4,.4,1),box-shadow .4s,border-color .4s;will-change:transform,opacity}
+  .wallcard.in{opacity:1;transform:scale(1)}
+  .wallcard.glow{box-shadow:0 0 24px rgba(249,104,10,.55);border-color:var(--orange)}
+  .wallcard .wo{display:block;margin-top:.3em;color:var(--soft-turq);font-size:.72em;font-family:var(--body);font-weight:700;letter-spacing:.02em}
+  .wallcard.coalesce{transition:transform 1.3s cubic-bezier(.5,0,.15,1),opacity 1.1s ease;z-index:3}
+
   /* reveal */
   .reveal{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:absolute;inset:0}
   .montage{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:min(80vw,900px);opacity:0;transition:opacity .3s}
@@ -91,7 +101,7 @@
   @keyframes orbPop{0%{transform:translate(-50%,-50%) scale(2.4);opacity:.95}100%{transform:translate(-50%,-50%) scale(7);opacity:0}}
   .flychip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);background:rgba(208,230,232,.10);border:1px solid rgba(249,104,10,.45);color:#fff;border-radius:10px;padding:5px 12px;font-size:clamp(.65rem,1.3vmin,.95rem);max-width:28vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95;pointer-events:none;transition:left 1.5s cubic-bezier(.45,0,.2,1),top 1.5s cubic-bezier(.45,0,.2,1),transform 1.5s ease,opacity 1.5s ease;z-index:2}
   .hero{opacity:0;transition:opacity .5s;cursor:default}
-  .hero .n{font-family:var(--display);font-weight:700;font-size:clamp(5rem,26vmin,20rem);letter-spacing:-.04em;color:var(--orange);text-shadow:0 0 70px rgba(249,104,10,.55);display:block;line-height:.9}
+  .hero .n{font-family:var(--display);font-weight:700;font-size:clamp(3rem,17vmin,14rem);letter-spacing:-.04em;color:var(--orange);text-shadow:0 0 70px rgba(249,104,10,.55);display:block;line-height:.9;white-space:nowrap}
   .hero.revealed{animation:pop 1s cubic-bezier(.2,1.5,.4,1)}
   @keyframes pop{0%{transform:scale(.6);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1)}}
   .subline{font-family:var(--display);font-weight:500;color:#fff;font-size:clamp(.9rem,2vmin,1.4rem);opacity:0;transition:opacity .8s ease .3s;margin-top:1vmin}
@@ -170,30 +180,23 @@
   <div class="screen">
     <div class="screen-head">
       <span class="eyebrow">rePurpose Global · All Hands</span>
-      <h1 id="screenTitle">The number is filling up.</h1>
-      <div class="topcount" id="topCount">0 notes from the team</div>
+      <h1 id="screenTitle">What we're proudest of</h1>
+      <div class="topcount" id="topCount">0 accomplishments</div>
     </div>
     <div class="stage">
       <div class="collect" id="collectView">
-        <div class="bigcount">
-          <div class="bn" id="bigN">0</div>
-          <div class="bl"><b id="obNY">0</b> NYC &nbsp;·&nbsp; <b id="obBLR">0</b> Bangalore &nbsp;·&nbsp; <b id="obREM">0</b> Remote &nbsp;·&nbsp; pieces on the wall</div>
-        </div>
-        <div class="spotlight empty" id="spotlight">
-          <div class="kind" id="spKind"></div>
-          <div class="msg" id="spMsg">Scan to add your piece →</div>
-          <div class="who" id="spWho"></div>
-        </div>
+        <div class="wall" id="wall"></div>
+        <div class="wall-empty" id="wallEmpty">The wall fills as the team adds their proudest moments…</div>
         <div class="joinhelp">
           <div class="qrbox" id="qrbox"></div>
-          <div class="jh-t"><div class="a">Scan to add your piece</div><div class="b" id="joinUrl"></div></div>
+          <div class="jh-t"><div class="a">Scan to add your accomplishment</div><div class="b" id="joinUrl"></div></div>
         </div>
       </div>
 
       <div class="reveal" id="revealView">
         <div class="montage" id="montage"></div>
         <div class="orb2" id="orb2"></div>
-        <div class="hero" id="hero"><span class="n">$10M</span></div>
+        <div class="hero" id="hero"><span class="n">$10M ARR</span></div>
         <div class="subline" id="subline">Built by every one of us.</div>
         <button class="readbtn" id="readBtn">📖 Read everyone's notes</button>
       </div>
@@ -285,22 +288,26 @@
   $('replayBtn').addEventListener('click',()=>{ if(animating)return; setBusy(true); store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}); });
   $('resetBtn').addEventListener('click',async()=>{ if(!confirm('Clear every note and reset the board? Do this BEFORE the live event.'))return; const keys=[...await store.list(NS+'contrib:'),NS+'meta']; for(const k of keys) await store.del(k); location.reload(); });
 
-  /* spotlight (collection) */
-  const sp=$('spotlight'); let spIdx=0;
-  function showSpot(c,flash){ sp.classList.remove('empty'); $('spKind').textContent=c.kind; $('spMsg').textContent='“'+c.msg+'”'; $('spWho').textContent=c.name+' · '+c.office; if(flash){sp.classList.add('flash');burst(2);setTimeout(()=>sp.classList.remove('flash'),460);} }
-  function cycleSpot(){ if(!contribs.length||revealed)return; showSpot(contribs[spIdx%contribs.length],false); spIdx++; }
-  setInterval(cycleSpot,3500);
+  /* live wall (collection) */
+  const wall=$('wall'); const WALL_CAP=54;
+  function cardHTML(c){ return '“'+esc(c.msg)+'”<span class="wo">'+esc(c.office)+'</span>'; }
+  function addCard(c){
+    const d=document.createElement('div'); d.className='wallcard'; d.innerHTML=cardHTML(c);
+    wall.appendChild(d);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('in','glow')));
+    setTimeout(()=>d.classList.remove('glow'),1600);
+    while(wall.children.length>WALL_CAP) wall.removeChild(wall.firstChild);
+  }
+  function renderWall(){ wall.innerHTML=''; contribs.slice(-WALL_CAP).forEach(c=>{ const d=document.createElement('div'); d.className='wallcard in'; d.innerHTML=cardHTML(c); wall.appendChild(d); }); }
 
   /* counts */
   function updateCounts(){
     const n=contribs.length;
-    $('bigN').textContent=n; $('liveN').textContent=n;
-    $('topCount').innerHTML='<b>'+n+'</b> '+(n===1?'note':'notes')+' from the team';
-    $('obNY').textContent=contribs.filter(c=>c.office==='New York').length;
-    $('obBLR').textContent=contribs.filter(c=>c.office==='Bangalore').length;
-    $('obREM').textContent=contribs.filter(c=>c.office==='Remote').length;
-    if(!revealed) $('screenTitle').textContent=n?'The number is filling up.':'The number is filling up.';
-    // manual reveal only — no automatic reveal
+    const liveEl=$('liveN'); if(liveEl) liveEl.textContent=n;
+    const ny=contribs.filter(c=>c.office==='New York').length,
+          bl=contribs.filter(c=>c.office==='Bangalore').length,
+          rm=contribs.filter(c=>c.office==='Remote').length;
+    $('topCount').innerHTML='<b>'+n+'</b> '+(n===1?'accomplishment':'accomplishments')+' &nbsp;·&nbsp; '+ny+' NYC · '+bl+' Bangalore · '+rm+' Remote';
   }
 
   /* archive (living artifact) */
@@ -309,7 +316,7 @@
     const list=contribs.slice().sort((a,b)=>b.ts-a.ts);
     $('archCount').textContent=list.length;
     list.forEach(c=>{ const d=document.createElement('div'); d.className='acard';
-      d.innerHTML='<div class="ak">'+esc(c.kind)+'</div><div class="am">“'+esc(c.msg)+'”</div><div class="aw">'+esc(c.name)+' · '+esc(c.office)+'</div>'; grid.appendChild(d); });
+      d.innerHTML='<div class="am">“'+esc(c.msg)+'”</div><div class="aw">'+esc(c.name)+' · '+esc(c.office)+'</div>'; grid.appendChild(d); });
     document.body.classList.add('archive-on');
   }
   function esc(s){ return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
@@ -354,15 +361,33 @@
       if(Date.now()-t0>4000){ clearInterval(iv); montage.style.opacity='0'; done&&done(); }
     },300);
   }
+  function coalesceWall(){
+    const cards=[...wall.querySelectorAll('.wallcard')];
+    const cx=innerWidth/2, cy=innerHeight/2;
+    cards.forEach(c=>{
+      const r=c.getBoundingClientRect();
+      const dx=Math.round(cx-(r.left+r.width/2)), dy=Math.round(cy-(r.top+r.height/2));
+      c.classList.add('coalesce');
+      c.style.transitionDelay=(Math.random()*0.35).toFixed(2)+'s';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ c.style.transform='translate('+dx+'px,'+dy+'px) scale(.08)'; c.style.opacity='0'; }));
+    });
+  }
   function runReveal(animate){
     if(animate && animating) return;          // ignore re-triggers while an animation is in flight
     if(animate){ animating=true; setBusy(true); }
-    setMode('screen'); collectView.style.display='none'; revealView.style.display='flex';
+    setMode('screen'); revealView.style.display='flex';
     orb2.classList.remove('grow','pop'); hero.classList.remove('revealed'); hero.style.opacity='0';
     $('subline').style.opacity='0'; const rb=$('readBtn'); rb.style.opacity='0'; rb.style.pointerEvents='none';
-    if(!animate){ showResult(); return; }
-    void orb2.offsetWidth; orb2.classList.add('grow'); implode(4000); spawnChips(3800);
-    runMontage(()=>{ orb2.classList.remove('grow'); orb2.classList.add('pop'); setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },260); });
+    if(!animate){ collectView.style.display='none'; showResult(); return; }
+    // animated: keep the wall visible, then let every card fly into the growing ball
+    renderWall(); collectView.style.display='flex';
+    void orb2.offsetWidth; orb2.classList.add('grow'); implode(4200);
+    requestAnimationFrame(()=>coalesceWall());
+    setTimeout(()=>{
+      collectView.style.display='none';
+      orb2.classList.remove('grow'); orb2.classList.add('pop');
+      setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },300);
+    },4000);
     setTimeout(()=>{ if(animating) showResult(); },6500); // safety net: force-finish + re-enable
   }
   function doReveal(animate){ if(revealed) return; revealed=true; runReveal(animate); }
@@ -372,14 +397,16 @@
   async function poll(){
     const ck=await store.list(NS+'contrib:'); const fresh=ck.filter(k=>!seen.has(k)); let added=[];
     for(const k of fresh){ const v=await store.get(k); if(v){ seen.add(k); contribs.push(v); added.push(v);} }
-    if(added.length){ contribs.sort((a,b)=>a.ts-b.ts); if(!first&&!revealed) showSpot(added[added.length-1],true); }
+    if(added.length){
+      contribs.sort((a,b)=>a.ts-b.ts);
+      if(!revealed){ if(first){ renderWall(); } else { added.forEach(addCard); burst(1); } }
+    }
     updateCounts();
     const meta=await store.get(NS+'meta');
     if(meta&&meta.revealed && innerWidth>=1024){   // reveal ONLY on the big screen — phones never show the number
       if(!revealed){ doReveal(!first); lastReplay=meta.replay||meta.ts||0; }
       else if(meta.replay && meta.replay!==lastReplay){ lastReplay=meta.replay; runReveal(true); }
     }
-    if(contribs.length && sp.classList.contains('empty') && !revealed) cycleSpot();
     first=false;
   }
   setInterval(poll,3000); poll();
