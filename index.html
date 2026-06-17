@@ -216,7 +216,6 @@
 <div class="ctl-hint">press C for controls</div>
 <div class="controls">
   <div class="grp"><label>Live count</label><span class="live" id="liveN">0</span></div>
-  <div class="grp"><label>Unlock at (auto)</label><input type="number" id="targetInput" value="0" min="0" max="500"></div>
   <button class="ctl-btn" id="revealBtn">✦ Reveal the number</button>
   <button class="ctl-btn ghost" id="replayBtn">↺ Replay animation</button>
   <button class="ctl-btn danger" id="resetBtn">Reset board</button>
@@ -282,8 +281,7 @@
   $('againBtn').addEventListener('click',()=>{ document.body.classList.remove('joined'); msgI.value=''; $('msgCount').textContent='110 left'; checkForm(); msgI.focus(); });
 
   /* controls */
-  let target=0; const targetInput=$('targetInput');
-  targetInput.addEventListener('change',()=>{ target=Math.max(0,+targetInput.value||0); });
+  /* manual reveal only — no auto threshold */
   $('revealBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
   $('replayBtn').addEventListener('click',()=>store.set(NS+'meta',{revealed:true,ts:Date.now(),replay:Date.now()}));
   $('resetBtn').addEventListener('click',async()=>{ if(!confirm('Clear every note and reset the board? Do this BEFORE the live event.'))return; const keys=[...await store.list(NS+'contrib:'),NS+'meta']; for(const k of keys) await store.del(k); location.reload(); });
@@ -303,7 +301,7 @@
     $('obBLR').textContent=contribs.filter(c=>c.office==='Bangalore').length;
     $('obREM').textContent=contribs.filter(c=>c.office==='Remote').length;
     if(!revealed) $('screenTitle').textContent=n?'The number is filling up.':'The number is filling up.';
-    if(!revealed && target>0 && n>=target) store.set(NS+'meta',{revealed:true,ts:Date.now()});
+    // manual reveal only — no automatic reveal
   }
 
   /* archive (living artifact) */
