@@ -55,6 +55,8 @@
   body.mode-screen .screen{display:flex}
   .screen-head{text-align:center}
   .screen-head h1{font-family:var(--display);font-weight:600;font-size:clamp(1.3rem,3.4vmin,2.3rem);line-height:1.05;letter-spacing:-.02em;margin-top:.6vmin}
+  .topcount{text-align:center;margin-top:.8vmin;color:var(--soft-turq);font-size:clamp(.8rem,1.6vmin,1.05rem);font-weight:700;letter-spacing:.02em}
+  .topcount b{color:var(--orange);font-family:var(--display)}
   .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative}
 
   /* collecting */
@@ -175,6 +177,7 @@
     <div class="screen-head">
       <span class="eyebrow">rePurpose Global · All Hands</span>
       <h1 id="screenTitle">The number is filling up.</h1>
+      <div class="topcount" id="topCount">0 notes from the team</div>
     </div>
     <div class="stage">
       <div class="collect" id="collectView">
@@ -295,6 +298,7 @@
   function updateCounts(){
     const n=contribs.length;
     $('bigN').textContent=n; $('liveN').textContent=n;
+    $('topCount').innerHTML='<b>'+n+'</b> '+(n===1?'note':'notes')+' from the team';
     $('obNY').textContent=contribs.filter(c=>c.office==='New York').length;
     $('obBLR').textContent=contribs.filter(c=>c.office==='Bangalore').length;
     $('obREM').textContent=contribs.filter(c=>c.office==='Remote').length;
