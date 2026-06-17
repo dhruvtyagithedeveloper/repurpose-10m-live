@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · We Hit $10M, Together</title><!--BUILD:debounce-replay-v9-->
+<title>rePurpose · All Hands</title><!--BUILD:surprise-fix-v10-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -141,9 +141,9 @@
   <div class="join">
     <div class="card">
       <div class="form-body">
-        <div class="eyebrow">Add your piece</div>
-        <h1>We just hit <span class="accent">$10M</span>. You helped build it.</h1>
-        <p class="lead">Drop one line — grateful for, proud of, or fired up about. Add as many as you like; they all go into the reveal.</p>
+        <div class="eyebrow">One question</div>
+        <h1>What's <span class="accent">one accomplishment</span> you're most proud of?</h1>
+        <p class="lead">Personal or company-wide — anything from your time at rePurpose. Add as many as you like; they all go into the reveal.</p>
         <label>Your name</label>
         <input type="text" id="name" maxlength="28" placeholder="First name is plenty">
         <label>Which office?</label>
@@ -152,14 +152,8 @@
           <button class="chip" data-office="Bangalore">Bangalore</button>
           <button class="chip" data-office="Remote">Remote</button>
         </div>
-        <label>I'm…</label>
-        <div class="chips" id="kinds">
-          <button class="chip" data-kind="Grateful for">Grateful for</button>
-          <button class="chip" data-kind="Proud of">Proud of</button>
-          <button class="chip" data-kind="Fired up for">Fired up for</button>
-        </div>
-        <label>Say it in a line</label>
-        <input type="text" id="msg" maxlength="110" placeholder="the team that pulled this off…">
+        <label>The accomplishment you're proudest of</label>
+        <input type="text" id="msg" maxlength="110" placeholder="our first product launch, the 100M lbs milestone, a teammate I grew with…">
         <div class="count-hint" id="msgCount">110 left</div>
         <button class="submit" id="submitBtn" disabled>Add to the wall</button>
       </div>
@@ -268,11 +262,10 @@
   function renderQR(){ const box=$('qrbox'); $('joinUrl').textContent=joinURL(); if(box.dataset.done||typeof QRCode==='undefined')return; try{ new QRCode(box,{text:joinURL(),width:120,height:120,colorDark:'#03282a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); box.dataset.done='1'; }catch(e){} }
 
   /* join form (+ resubmit) */
-  let office=null,kind=null,subN=0;
+  let office=null,kind='Proud of',subN=0;   // single accomplishment question — kind is fixed
   const nameI=$('name'),msgI=$('msg'),submitBtn=$('submitBtn');
-  function checkForm(){ submitBtn.disabled=!(nameI.value.trim()&&office&&kind&&msgI.value.trim()); }
+  function checkForm(){ submitBtn.disabled=!(nameI.value.trim()&&office&&msgI.value.trim()); }
   $('offices').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;document.querySelectorAll('#offices .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');office=b.dataset.office;checkForm();});
-  $('kinds').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;document.querySelectorAll('#kinds .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');kind=b.dataset.kind;checkForm();});
   nameI.addEventListener('input',checkForm);
   msgI.addEventListener('input',()=>{$('msgCount').textContent=(110-msgI.value.length)+' left';checkForm();});
   submitBtn.addEventListener('click',async()=>{
@@ -382,9 +375,9 @@
     if(added.length){ contribs.sort((a,b)=>a.ts-b.ts); if(!first&&!revealed) showSpot(added[added.length-1],true); }
     updateCounts();
     const meta=await store.get(NS+'meta');
-    if(meta&&meta.revealed){
-      if(!revealed){ doReveal(!first && innerWidth>=1024); lastReplay=meta.replay||meta.ts||0; }
-      else if(meta.replay && meta.replay!==lastReplay){ lastReplay=meta.replay; if(innerWidth>=1024) runReveal(true); }
+    if(meta&&meta.revealed && innerWidth>=1024){   // reveal ONLY on the big screen — phones never show the number
+      if(!revealed){ doReveal(!first); lastReplay=meta.replay||meta.ts||0; }
+      else if(meta.replay && meta.replay!==lastReplay){ lastReplay=meta.replay; runReveal(true); }
     }
     if(contribs.length && sp.classList.contains('empty') && !revealed) cycleSpot();
     first=false;
