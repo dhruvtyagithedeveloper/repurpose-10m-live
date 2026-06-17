@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · All Hands</title><!--BUILD:replay-hold-v13-->
+<title>rePurpose · All Hands</title><!--BUILD:no-stale-reveal-v14-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -231,15 +231,17 @@
     store={ async set(k,v){try{await db.ref(toPath(k)).set(v);}catch(e){}return{key:k};},
       async get(k){try{const s=await db.ref(toPath(k)).get();return s.exists()?s.val():null;}catch(e){return null;}},
       async del(k){try{await db.ref(toPath(k)).remove();}catch(e){}return{key:k};},
-      async list(p){try{const b=toPath(p.replace(/:$/,''));const s=await db.ref(b).get();return s.exists()?Object.keys(s.val()).map(c=>p+c):[];}catch(e){return[];}} };
+      async list(p){try{const b=toPath(p.replace(/:$/,''));const s=await db.ref(b).get();return s.exists()?Object.keys(s.val()).map(c=>p+c):[];}catch(e){return[];}},
+      async all(p){try{const b=toPath(p.replace(/:$/,''));const s=await db.ref(b).get();if(!s.exists())return{};const v=s.val(),o={};for(const c in v)o[p+c]=v[c];return o;}catch(e){return{};}} };
     mode='firebase';
   } else if(window.storage&&typeof window.storage.set==='function'){
     store={ async set(k,v){try{return await window.storage.set(k,JSON.stringify(v),true);}catch(e){return null;}},
       async get(k){try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null;}catch(e){return null;}},
       async del(k){try{return await window.storage.delete(k,true);}catch(e){return null;}},
-      async list(p){try{const r=await window.storage.list(p,true);return(r&&r.keys)?r.keys:[];}catch(e){return[];}} };
+      async list(p){try{const r=await window.storage.list(p,true);return(r&&r.keys)?r.keys:[];}catch(e){return[];}},
+      async all(p){const ks=await this.list(p);const o={};for(const k of ks){o[k]=await this.get(k);}return o;} };
     mode='artifact';
-  } else { const m={};store={async set(k,v){m[k]=JSON.stringify(v);return{key:k};},async get(k){return m[k]?JSON.parse(m[k]):null;},async del(k){delete m[k];return{key:k};},async list(p){return Object.keys(m).filter(k=>k.startsWith(p||''));}}; mode='preview'; }
+  } else { const m={};store={async set(k,v){m[k]=JSON.stringify(v);return{key:k};},async get(k){return m[k]?JSON.parse(m[k]):null;},async del(k){delete m[k];return{key:k};},async list(p){return Object.keys(m).filter(k=>k.startsWith(p||''));},async all(p){const o={};for(const k in m){if(k.startsWith(p||''))o[k]=JSON.parse(m[k]);}return o;}}; mode='preview'; }
   if(mode==='preview') document.body.classList.add('preview');
 
   const $=id=>document.getElementById(id);
@@ -398,17 +400,20 @@
   /* poll */
   let contribs=[]; const seen=new Set(); let first=true;
   async function poll(){
-    const ck=await store.list(NS+'contrib:'); const fresh=ck.filter(k=>!seen.has(k)); let added=[];
-    for(const k of fresh){ const v=await store.get(k); if(v){ seen.add(k); contribs.push(v); added.push(v);} }
+    const all=await store.all(NS+'contrib:'); let added=[];
+    for(const k in all){ if(!seen.has(k)){ const v=all[k]; if(v){ seen.add(k); contribs.push(v); added.push(v);} } }
     if(added.length){
       contribs.sort((a,b)=>a.ts-b.ts);
       if(!revealed){ if(first){ renderWall(); } else { added.forEach(addCard); burst(1); } }
     }
     updateCounts();
     const meta=await store.get(NS+'meta');
-    if(meta&&meta.revealed && innerWidth>=1024){   // reveal ONLY on the big screen — phones never show the number
-      if(!revealed){ doReveal(!first); lastReplay=meta.replay||meta.ts||0; }
-      else if(meta.replay && meta.replay!==lastReplay){ lastReplay=meta.replay; runReveal(true); }
+    // Reveal ONLY on the big screen, and ONLY from a fresh press this session.
+    // On load we adopt the current flag as a baseline so a STALE flag never auto-reveals.
+    if(innerWidth>=1024 && meta){
+      const token=meta.replay||meta.ts||0;
+      if(first){ lastReplay=token; }
+      else if(meta.revealed && token!==lastReplay){ lastReplay=token; revealed=true; runReveal(true); }
     }
     first=false;
   }
