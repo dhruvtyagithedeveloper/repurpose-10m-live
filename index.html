@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>rePurpose · All Hands</title><!--BUILD:name-on-cards-v12-->
+<title>rePurpose · All Hands</title><!--BUILD:replay-hold-v13-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
@@ -379,16 +379,19 @@
     orb2.classList.remove('grow','pop'); hero.classList.remove('revealed'); hero.style.opacity='0';
     $('subline').style.opacity='0'; const rb=$('readBtn'); rb.style.opacity='0'; rb.style.pointerEvents='none';
     if(!animate){ collectView.style.display='none'; showResult(); return; }
-    // animated: keep the wall visible, then let every card fly into the growing ball
+    // animated: first show the full wall of notes (esp. on replay), hold a beat, THEN coalesce
     renderWall(); collectView.style.display='flex';
-    void orb2.offsetWidth; orb2.classList.add('grow'); implode(4200);
-    requestAnimationFrame(()=>coalesceWall());
+    const HOLD=2600; // let the wall sit for ~2.6s before it morphs into the ball
     setTimeout(()=>{
-      collectView.style.display='none';
-      orb2.classList.remove('grow'); orb2.classList.add('pop');
-      setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },300);
-    },4000);
-    setTimeout(()=>{ if(animating) showResult(); },6500); // safety net: force-finish + re-enable
+      void orb2.offsetWidth; orb2.classList.add('grow'); implode(4200);
+      requestAnimationFrame(()=>coalesceWall());
+      setTimeout(()=>{
+        collectView.style.display='none';
+        orb2.classList.remove('grow'); orb2.classList.add('pop');
+        setTimeout(()=>{ orb2.classList.remove('pop'); showResult(); },300);
+      },4000);
+    },HOLD);
+    setTimeout(()=>{ if(animating) showResult(); },HOLD+6500); // safety net: force-finish + re-enable
   }
   function doReveal(animate){ if(revealed) return; revealed=true; runReveal(animate); }
 
