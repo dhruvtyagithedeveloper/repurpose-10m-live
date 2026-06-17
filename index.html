@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <title>rePurpose · We Hit $10M, Together</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -85,6 +87,7 @@
   .orb2.pop{animation:orbPop .35s ease-out forwards}
   @keyframes orbGrow{0%{transform:translate(-50%,-50%) scale(0);opacity:.2}100%{transform:translate(-50%,-50%) scale(2.4);opacity:.95}}
   @keyframes orbPop{0%{transform:translate(-50%,-50%) scale(2.4);opacity:.95}100%{transform:translate(-50%,-50%) scale(7);opacity:0}}
+  .flychip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);background:rgba(208,230,232,.10);border:1px solid rgba(249,104,10,.45);color:#fff;border-radius:10px;padding:5px 12px;font-size:clamp(.65rem,1.3vmin,.95rem);max-width:28vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95;pointer-events:none;transition:left 1.5s cubic-bezier(.45,0,.2,1),top 1.5s cubic-bezier(.45,0,.2,1),transform 1.5s ease,opacity 1.5s ease;z-index:2}
   .hero{opacity:0;transition:opacity .5s;cursor:pointer}
   .hero .n{font-family:var(--display);font-weight:700;font-size:clamp(5rem,26vmin,20rem);letter-spacing:-.04em;color:var(--orange);text-shadow:0 0 70px rgba(249,104,10,.55);display:block;line-height:.9}
   .hero.revealed{animation:pop 1s cubic-bezier(.2,1.5,.4,1)}
@@ -312,6 +315,18 @@
     $('subline').style.opacity='1'; $('readHint').style.opacity='1';
     storm();
   }
+  function spawnChips(dur){
+    const end=Date.now()+dur;
+    const iv=setInterval(()=>{ if(Date.now()>end){clearInterval(iv);return;}
+      const c=contribs.length?contribs[Math.floor(Math.random()*contribs.length)]:null;
+      const chip=document.createElement('div'); chip.className='flychip';
+      chip.textContent=c?('“'+c.msg.slice(0,46)+(c.msg.length>46?'…':'')+'”'):'🧡';
+      chip.style.left=(Math.random()*100)+'%'; chip.style.top=(Math.random()<.5?-12:112)+'%';
+      revealView.appendChild(chip);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ chip.style.left='50%'; chip.style.top='50%'; chip.style.transform='translate(-50%,-50%) scale(.15)'; chip.style.opacity='0'; }));
+      setTimeout(()=>chip.remove(),1600);
+    },200);
+  }
   function runMontage(done){
     const notes=contribs.length?contribs.slice():[{kind:'',msg:'$10M',name:'',office:''}];
     montage.style.opacity='1'; let t0=Date.now();
@@ -326,7 +341,7 @@
     setMode('screen');
     collectView.style.display='none'; revealView.style.display='flex';
     if(!animate){ finishReveal(); return; }
-    orb2.classList.add('grow'); implode(4000);
+    orb2.classList.add('grow'); implode(4000); spawnChips(3800);
     runMontage(()=>{ orb2.classList.remove('grow'); orb2.classList.add('pop'); setTimeout(finishReveal,260); });
     setTimeout(()=>{ if(hero.style.opacity!=='1') finishReveal(); },6500); // safety net
   }
