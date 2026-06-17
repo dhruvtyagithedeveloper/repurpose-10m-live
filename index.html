@@ -111,7 +111,7 @@
 
   /* hidden controls */
   .controls{position:fixed;bottom:0;left:0;right:0;z-index:90;display:none;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;padding:12px;background:rgba(3,40,42,.94);border-top:1px solid rgba(208,230,232,.2)}
-  body.controls-on .controls{display:flex}
+  body.is-host.controls-on .controls{display:flex}
   .controls .grp{display:flex;align-items:center;gap:8px;background:rgba(208,230,232,.08);border-radius:12px;padding:.5em .9em}
   .controls label{margin:0;color:var(--soft-turq);font-size:.78rem}
   .controls .live{color:#fff;font-weight:700}
@@ -119,8 +119,8 @@
   .ctl-btn{font-family:var(--body);font-weight:700;font-size:.85rem;border:none;border-radius:999px;padding:.6em 1.3em;cursor:pointer;color:#fff;background:var(--orange)}
   .ctl-btn.danger{background:transparent;border:1.5px solid rgba(249,104,10,.5);color:var(--orange)}
   .ctl-btn.ghost{background:transparent;border:1.5px solid rgba(208,230,232,.35);color:var(--soft-turq)}
-  .ctl-hint{position:fixed;bottom:8px;right:12px;z-index:35;color:rgba(208,230,232,.35);font-size:.7rem}
-  body.mode-join .ctl-hint{display:none}
+  .ctl-hint{position:fixed;bottom:8px;right:12px;z-index:35;color:rgba(208,230,232,.35);font-size:.7rem;display:none}
+  body.is-host.mode-screen .ctl-hint{display:block}
   @media (prefers-reduced-motion:reduce){ .orb2,.hero.revealed{animation:none!important} }
 </style>
 </head>
@@ -246,7 +246,14 @@
   function setMode(mm){ document.body.className=document.body.className.replace(/mode-\w+/,'mode-'+mm); if(mm==='screen') renderQR(); }
   if(innerWidth>=1024) setMode('screen');
   $('modeBtn').addEventListener('click',()=> setMode(document.body.classList.contains('mode-screen')?'join':'screen'));
-  addEventListener('keydown',e=>{ if(e.key==='c'||e.key==='C') document.body.classList.toggle('controls-on'); });
+  const isHost = new URLSearchParams(location.search).has('host');
+  if(isHost) document.body.classList.add('is-host');
+  addEventListener('keydown',e=>{
+    if(!isHost) return;
+    const t=e.target, tag=(t&&t.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||(t&&t.isContentEditable)) return;   // don't fire while typing
+    if(e.key==='c'||e.key==='C') document.body.classList.toggle('controls-on');
+  });
 
   function joinURL(){ return location.origin+location.pathname; }
   function renderQR(){ const box=$('qrbox'); $('joinUrl').textContent=joinURL(); if(box.dataset.done||typeof QRCode==='undefined')return; try{ new QRCode(box,{text:joinURL(),width:120,height:120,colorDark:'#03282a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); box.dataset.done='1'; }catch(e){} }
